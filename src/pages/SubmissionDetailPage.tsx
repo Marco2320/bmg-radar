@@ -7,7 +7,7 @@ import StatusBadge from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowUp, ExternalLink, ArrowLeft, MessageSquare } from 'lucide-react';
+import { ArrowUp, ExternalLink, ArrowLeft, MessageSquare, Music } from 'lucide-react';
 
 const SubmissionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -58,20 +58,29 @@ const SubmissionDetailPage: React.FC = () => {
 
       <div className="bmg-card p-6 mb-6">
         <div className="flex items-start justify-between gap-4 mb-4">
-          <div>
-            <h1 className="text-xl font-semibold mb-1">{submission.artist_name}</h1>
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <span>{submission.territory}</span>
-              <span>·</span>
-              <span>{submission.genre}</span>
-              <span>·</span>
-              <span>by {submitter?.name}</span>
-              <span>·</span>
-              <span>{new Date(submission.created_at).toLocaleDateString()}</span>
+          <div className="flex gap-4">
+            <div className="w-16 h-16 rounded bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+              {submission.image_url ? (
+                <img src={submission.image_url} alt={submission.artist_name} className="w-full h-full object-cover" />
+              ) : (
+                <Music className="h-6 w-6 text-muted-foreground" />
+              )}
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold mb-1">{submission.artist_name}</h1>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span>{submission.territory}</span>
+                <span>·</span>
+                <span>{submission.genre === 'Other' && submission.custom_genre ? `Other (${submission.custom_genre})` : submission.genre}</span>
+                <span>·</span>
+                <span>by {submitter?.name}</span>
+                <span>·</span>
+                <span>{new Date(submission.created_at).toLocaleDateString()}</span>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <StatusBadge status={submission.status} />
+            {isAR && <StatusBadge status={submission.status} />}
             <button
               onClick={handleVote}
               className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors bmg-focus-ring ${

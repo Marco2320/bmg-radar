@@ -4,7 +4,7 @@ import { Submission } from '@/types';
 import { store } from '@/lib/store';
 import { useAuth } from '@/contexts/AuthContext';
 import StatusBadge from '@/components/StatusBadge';
-import { ArrowUp, MessageSquare, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowUp, MessageSquare, ExternalLink, ChevronDown, ChevronUp, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface SubmissionCardProps {
@@ -13,7 +13,7 @@ interface SubmissionCardProps {
 }
 
 const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onVoteChange }) => {
-  const { user } = useAuth();
+  const { user, isAR } = useAuth();
   const [showLinks, setShowLinks] = useState(false);
 
   const voteCount = store.getVoteCount(submission.id);
@@ -21,6 +21,9 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onVoteChang
   const commentCount = store.getCommentCount(submission.id);
   const primaryLink = submission.links[0];
   const submitter = store.getUser(submission.submitted_by);
+  const displayGenre = submission.genre === 'Other' && submission.custom_genre
+    ? `Other (${submission.custom_genre})`
+    : submission.genre;
 
   const handleVote = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -48,6 +51,23 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onVoteChang
           </button>
         </div>
 
+        {/* Artist image */}
+        <div className="w-12 h-12 rounded bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+          {submission.image_url ? (
+            <img
+              src={submission.image_url}
+              alt={submission.artist_name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.parentElement?.classList.add('fallback-icon');
+              }}
+            />
+          ) : (
+            <Music className="h-5 w-5 text-muted-foreground" />
+          )}
+        </div>
+
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3 mb-2">
@@ -56,13 +76,13 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onVoteChang
                 {submission.artist_name}
               </h3>
             </Link>
-            <StatusBadge status={submission.status} />
+            {isAR && <StatusBadge status={submission.status} />}
           </div>
 
           <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
             <span>{submission.territory}</span>
             <span>·</span>
-            <span>{submission.genre}</span>
+            <span>{displayGenre}</span>
             <span>·</span>
             <span>{submitter?.name}</span>
             <span>·</span>

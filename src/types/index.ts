@@ -32,11 +32,13 @@ export interface Submission {
   artist_name: string;
   territory: string;
   genre: string;
+  custom_genre?: string;
   rationale: string;
   submitted_by: string;
   status: SubmissionStatus;
   created_at: string;
   links: SubmissionLink[];
+  image_url?: string;
 }
 
 export interface Vote {
@@ -70,7 +72,7 @@ export const PLATFORM_PLACEHOLDERS: Record<Platform, string> = {
 };
 
 export const TERRITORIES = [
-  'Global', 'North America', 'Latin America', 'UK', 'DACH', 'France',
+  'North America', 'Latin America', 'UK', 'DACH', 'France',
   'Nordics', 'Southern Europe', 'Eastern Europe', 'Asia Pacific',
   'Africa', 'Middle East', 'Australia/NZ',
 ];
