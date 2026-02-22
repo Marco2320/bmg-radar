@@ -81,7 +81,7 @@ const SubmitPage: React.FC = () => {
       })),
     });
 
-    toast({ title: 'Artist submitted', description: `${artistName} has been added to the feed.` });
+    toast({ title: 'Thanks for submitting this artist to BMG Radar!', description: 'The recommendation is now live on the platform and visible to the A&R teams. Your contribution helps surface new talent and keeps our discovery culture active across BMG.' });
     navigate('/');
   };
 
