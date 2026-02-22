@@ -26,8 +26,13 @@ const FeedPage: React.FC = () => {
   const sevenDaysAgo = new Date(Date.now() - SEVEN_DAYS_MS).toISOString();
 
   const trending = useMemo(() => {
-    const allComments = submissions.flatMap(s => store.getComments(s.id));
-    return submissions
+    let subs = store.getSubmissions();
+    if (territory !== 'all') subs = subs.filter(s => s.territory === territory);
+    if (genre !== 'all') subs = subs.filter(s => s.genre === genre);
+    if (status !== 'all') subs = subs.filter(s => s.status === status);
+
+    const allComments = subs.flatMap(s => store.getComments(s.id));
+    return subs
       .map(s => {
         const recentVotes = allVotes.filter(v => v.submission_id === s.id && v.created_at >= sevenDaysAgo).length;
         const recentComments = allComments.filter(c => c.submission_id === s.id && c.created_at >= sevenDaysAgo).length;
@@ -35,7 +40,7 @@ const FeedPage: React.FC = () => {
       })
       .sort((a, b) => b.engagementScore - a.engagementScore)
       .slice(0, 3);
-  }, [submissions, allVotes, sevenDaysAgo, tick]);
+  }, [submissions, allVotes, sevenDaysAgo, territory, genre, status, tick]);
 
   const filtered = useMemo(() => {
     let subs = store.getSubmissions();
@@ -60,50 +65,6 @@ const FeedPage: React.FC = () => {
         <h1 className="text-2xl font-semibold mb-1">Artist Feed</h1>
         <p className="text-sm text-muted-foreground">Browse submitted artists and surface discovery signals.</p>
       </div>
-
-      {/* Trending Now */}
-      {trending.length > 0 && trending[0].engagementScore > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-4 h-4 text-accent-foreground" />
-            <h2 className="text-sm font-semibold">Trending Now</h2>
-          </div>
-          <div className="flex gap-3 overflow-x-auto pb-1">
-            {trending.filter(t => t.engagementScore > 0).map(s => (
-              <Link
-                to={`/submission/${s.id}`}
-                key={s.id}
-                className="bmg-card p-4 min-w-[200px] flex-shrink-0 hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  {s.image_url ? (
-                    <img src={s.image_url} alt={s.artist_name} className="w-8 h-8 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                      <Music className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  )}
-                  <span className="text-sm font-medium truncate">{s.artist_name}</span>
-                </div>
-                <p className="text-xs text-muted-foreground mb-2">{s.territory} · {s.genre}</p>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (user) {
-                      store.toggleVote(s.id, user.id);
-                      refresh();
-                    }
-                  }}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <ChevronUp className="w-3.5 h-3.5" />
-                  {store.getVoteCount(s.id)}
-                </button>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
@@ -149,6 +110,50 @@ const FeedPage: React.FC = () => {
           </Select>
         )}
       </div>
+
+      {/* Trending Now */}
+      {trending.length > 0 && trending[0].engagementScore > 0 && (
+        <div className="mb-8 pb-6 border-b border-border">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-4 h-4 text-accent-foreground" />
+            <h2 className="text-sm font-semibold">Trending Now</h2>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {trending.filter(t => t.engagementScore > 0).map(s => (
+              <Link
+                to={`/submission/${s.id}`}
+                key={s.id}
+                className="bmg-card p-4 min-w-[200px] flex-shrink-0 hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  {s.image_url ? (
+                    <img src={s.image_url} alt={s.artist_name} className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                      <Music className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  )}
+                  <span className="text-sm font-medium truncate">{s.artist_name}</span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-2">{s.territory} · {s.genre}</p>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (user) {
+                      store.toggleVote(s.id, user.id);
+                      refresh();
+                    }
+                  }}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ChevronUp className="w-3.5 h-3.5" />
+                  {store.getVoteCount(s.id)}
+                </button>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Results */}
       <div className="space-y-3">
