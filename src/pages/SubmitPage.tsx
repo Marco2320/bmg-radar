@@ -26,7 +26,7 @@ const SubmitPage: React.FC = () => {
   const [genre, setGenre] = useState('');
   const [customGenre, setCustomGenre] = useState('');
   const [rationale, setRationale] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageData, setImageData] = useState<string | null>(null);
   const [links, setLinks] = useState<LinkEntry[]>([{ platform: 'Spotify', url: '' }]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -44,7 +44,7 @@ const SubmitPage: React.FC = () => {
     if (genre === 'Other' && !customGenre.trim()) errs.customGenre = 'Please specify the genre.';
     if (!rationale.trim()) errs.rationale = 'Rationale is required.';
     if (rationale.length > 300) errs.rationale = 'Rationale must be 300 characters or less.';
-    if (imageUrl.trim() && !imageUrl.trim().startsWith('http')) errs.imageUrl = 'URL must start with http:// or https://';
+    
 
     const hasValidLink = links.some(l => l.url.trim().length > 0);
     if (!hasValidLink) errs.links = 'At least one valid URL is required.';
@@ -71,7 +71,7 @@ const SubmitPage: React.FC = () => {
       custom_genre: genre === 'Other' ? customGenre.trim() : undefined,
       rationale: rationale.trim(),
       submitted_by: user.id,
-      image_url: imageUrl.trim() || undefined,
+      image_url: imageData || undefined,
       links: validLinks.map(l => ({
         id: '',
         submission_id: '',
@@ -107,18 +107,40 @@ const SubmitPage: React.FC = () => {
           {errors.artistName && <p className="text-xs text-destructive">{errors.artistName}</p>}
         </div>
 
-        {/* Artist Image URL */}
+        {/* Artist Image */}
         <div className="space-y-1.5">
-          <Label htmlFor="image-url">Artist Image URL</Label>
-          <Input
-            id="image-url"
-            value={imageUrl}
-            onChange={e => setImageUrl(e.target.value)}
-            placeholder="https://... (optional — paste a profile image URL)"
-            className="bmg-focus-ring text-sm"
-          />
-          {errors.imageUrl && <p className="text-xs text-destructive">{errors.imageUrl}</p>}
-          <p className="text-xs text-muted-foreground">Tip: right-click an artist's profile picture on Spotify, YouTube, etc. and copy the image URL.</p>
+          <Label>Artist Image</Label>
+          {imageData ? (
+            <div className="flex items-center gap-3">
+              <div className="w-16 h-16 rounded bg-muted overflow-hidden shrink-0">
+                <img src={imageData} alt="Artist preview" className="w-full h-full object-cover" />
+              </div>
+              <button
+                type="button"
+                onClick={() => setImageData(null)}
+                className="text-xs font-medium text-destructive hover:underline"
+              >
+                Remove image
+              </button>
+            </div>
+          ) : (
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                className="block w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-muted file:text-foreground hover:file:bg-muted/80 cursor-pointer"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setImageData(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Optional — upload a profile image for the artist.</p>
+            </div>
+          )}
         </div>
 
         {/* Links */}
