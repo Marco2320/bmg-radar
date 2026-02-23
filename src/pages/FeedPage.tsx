@@ -4,14 +4,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { TERRITORIES, GENRES, STATUSES } from '@/types';
 import SubmissionCard from '@/components/SubmissionCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Link } from 'react-router-dom';
-import { TrendingUp, Music, ChevronUp } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { TrendingUp, Music, ChevronUp, X, CheckCircle2 } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 10;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 const FeedPage: React.FC = () => {
   const { isAR, user } = useAuth();
+  const location = useLocation();
+  const [showBanner, setShowBanner] = useState(!!(location.state as any)?.submitted);
   const [sort, setSort] = useState<'newest' | 'most_upvoted'>('newest');
   const [territory, setTerritory] = useState<string>('all');
   const [genre, setGenre] = useState<string>('all');
@@ -61,6 +63,25 @@ const FeedPage: React.FC = () => {
 
   return (
     <div className="container px-6 py-8 max-w-3xl">
+      {/* Success Banner */}
+      {showBanner && (
+        <div className="mb-6 rounded-lg border border-border bg-muted/50 p-5 relative">
+          <button
+            onClick={() => setShowBanner(false)}
+            className="absolute top-3 right-3 p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+            <div>
+              <h3 className="font-semibold text-base mb-1">Thanks for submitting this artist to BMG Radar!</h3>
+              <p className="text-sm text-muted-foreground">The recommendation is now live on the platform and visible to the A&R teams. Your contribution helps surface new talent and keeps our discovery culture active across BMG.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6">
         <h1 className="text-2xl font-semibold mb-1">Artist Feed</h1>
         <p className="text-sm text-muted-foreground">Browse submitted artists and surface discovery signals.</p>

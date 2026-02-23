@@ -81,12 +81,11 @@ const SubmitPage: React.FC = () => {
       })),
     });
 
-    toast({ title: 'Thanks for submitting this artist to BMG Radar!', description: 'The recommendation is now live on the platform and visible to the A&R teams. Your contribution helps surface new talent and keeps our discovery culture active across BMG.' });
-    navigate('/');
+    navigate('/', { state: { submitted: true } });
   };
 
   return (
-    <div className="container px-6 py-8 max-w-2xl">
+    <div className="container px-6 py-8 max-w-3xl">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold mb-1">Submit an Artist</h1>
         <p className="text-sm text-muted-foreground">Add an artist to the discovery radar for the team to review.</p>
