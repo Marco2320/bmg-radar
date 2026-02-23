@@ -9,11 +9,12 @@ import { TrendingUp, Music, ChevronUp, X, CheckCircle2 } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 10;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+type FeedPageLocationState = { submitted?: boolean };
 
 const FeedPage: React.FC = () => {
   const { isAR, user } = useAuth();
   const location = useLocation();
-  const [showBanner, setShowBanner] = useState(!!(location.state as any)?.submitted);
+  const [showBanner, setShowBanner] = useState(!!(location.state as FeedPageLocationState | null)?.submitted);
   const [sort, setSort] = useState<'newest' | 'most_upvoted'>('newest');
   const [territory, setTerritory] = useState<string>('all');
   const [genre, setGenre] = useState<string>('all');
