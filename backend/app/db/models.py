@@ -11,6 +11,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 
+def _enum_values(enum_cls: type[StrEnum]) -> list[str]:
+    return [member.value for member in enum_cls]
+
+
 class UserRole(StrEnum):
     EMPLOYEE = "employee"
     AR = "ar"
@@ -45,7 +49,10 @@ class User(Base):
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="user_role", native_enum=True), nullable=False)
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole, name="user_role", native_enum=True, values_callable=_enum_values),
+        nullable=False,
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -80,7 +87,7 @@ class Submission(Base):
         index=True,
     )
     status: Mapped[SubmissionStatus] = mapped_column(
-        Enum(SubmissionStatus, name="submission_status", native_enum=True),
+        Enum(SubmissionStatus, name="submission_status", native_enum=True, values_callable=_enum_values),
         nullable=False,
         default=SubmissionStatus.NEW,
         server_default=SubmissionStatus.NEW.value,
@@ -121,7 +128,7 @@ class SubmissionLink(Base):
         index=True,
     )
     platform: Mapped[Platform] = mapped_column(
-        Enum(Platform, name="platform", native_enum=True),
+        Enum(Platform, name="platform", native_enum=True, values_callable=_enum_values),
         nullable=False,
     )
     url: Mapped[str] = mapped_column(Text, nullable=False)
