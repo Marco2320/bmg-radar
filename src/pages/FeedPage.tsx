@@ -1,52 +1,49 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { store } from '@/lib/store';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubmissions, useAllVotes, useToggleVote, useVoteCount } from '@/hooks/use-api';
+import { apiStore } from '@/lib/api-store';
 import { TERRITORIES, GENRES, STATUSES } from '@/types';
 import SubmissionCard from '@/components/SubmissionCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link, useLocation } from 'react-router-dom';
-import { TrendingUp, Music, ChevronUp, X, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, Music, ChevronUp, X } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 10;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-type FeedPageLocationState = { submitted?: boolean };
 
 const FeedPage: React.FC = () => {
   const { isAR, user } = useAuth();
   const location = useLocation();
-  const [showBanner, setShowBanner] = useState(!!(location.state as FeedPageLocationState | null)?.submitted);
+  const [showBanner, setShowBanner] = useState(!!(location.state as any)?.submitted);
   const [sort, setSort] = useState<'newest' | 'most_upvoted'>('newest');
   const [territory, setTerritory] = useState<string>('all');
   const [genre, setGenre] = useState<string>('all');
   const [status, setStatus] = useState<string>('all');
   const [page, setPage] = useState(1);
-  const [tick, setTick] = useState(0);
 
-  const refresh = useCallback(() => setTick(t => t + 1), []);
+  const { data: submissions = [], isLoading } = useSubmissions();
+  const { data: allVotes = [] } = useAllVotes();
+  const toggleVote = useToggleVote();
 
-  const submissions = store.getSubmissions();
-  const allVotes = store.getAllVotes();
   const sevenDaysAgo = new Date(Date.now() - SEVEN_DAYS_MS).toISOString();
 
   const trending = useMemo(() => {
-    let subs = store.getSubmissions();
+    let subs = [...submissions];
     if (territory !== 'all') subs = subs.filter(s => s.territory === territory);
     if (genre !== 'all') subs = subs.filter(s => s.genre === genre);
     if (status !== 'all') subs = subs.filter(s => s.status === status);
 
-    const allComments = subs.flatMap(s => store.getComments(s.id));
     return subs
       .map(s => {
         const recentVotes = allVotes.filter(v => v.submission_id === s.id && v.created_at >= sevenDaysAgo).length;
-        const recentComments = allComments.filter(c => c.submission_id === s.id && c.created_at >= sevenDaysAgo).length;
-        return { ...s, engagementScore: recentVotes * 2 + recentComments * 3, recentVotes };
+        return { ...s, engagementScore: recentVotes * 2, recentVotes };
       })
       .sort((a, b) => b.engagementScore - a.engagementScore)
       .slice(0, 3);
-  }, [submissions, allVotes, sevenDaysAgo, territory, genre, status, tick]);
+  }, [submissions, allVotes, sevenDaysAgo, territory, genre, status]);
 
   const filtered = useMemo(() => {
-    let subs = store.getSubmissions();
+    let subs = [...submissions];
     if (territory !== 'all') subs = subs.filter(s => s.territory === territory);
     if (genre !== 'all') subs = subs.filter(s => s.genre === genre);
     if (status !== 'all') subs = subs.filter(s => s.status === status);
@@ -54,13 +51,22 @@ const FeedPage: React.FC = () => {
     if (sort === 'newest') {
       subs.sort((a, b) => b.created_at.localeCompare(a.created_at));
     } else {
-      subs.sort((a, b) => store.getVoteCount(b.id) - store.getVoteCount(a.id));
+      // For most_upvoted, use vote_count from the list response if available
+      subs.sort((a, b) => ((b as any).vote_count ?? 0) - ((a as any).vote_count ?? 0));
     }
     return subs;
-  }, [sort, territory, genre, status, tick]);
+  }, [sort, territory, genre, status, submissions]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paged = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
+  if (isLoading) {
+    return (
+      <div className="container px-6 py-12 text-center">
+        <p className="text-sm text-muted-foreground">Loading submissions…</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -176,14 +182,13 @@ const FeedPage: React.FC = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     if (user) {
-                      store.toggleVote(s.id, user.id);
-                      refresh();
+                      toggleVote.mutate({ submissionId: s.id, userId: user.id });
                     }
                   }}
                   className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <ChevronUp className="w-3.5 h-3.5" />
-                  {store.getVoteCount(s.id)}
+                  {(s as any).vote_count ?? s.recentVotes}
                 </button>
               </Link>
             ))}
@@ -199,7 +204,7 @@ const FeedPage: React.FC = () => {
           </div>
         ) : (
           paged.map(sub => (
-            <SubmissionCard key={sub.id} submission={sub} onVoteChange={refresh} />
+            <SubmissionCard key={sub.id} submission={sub} />
           ))
         )}
       </div>
