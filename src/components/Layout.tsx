@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { MOCK_USERS } from '@/lib/store';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart3, Plus, Radio } from 'lucide-react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, users, switchUser, isAR } = useAuth();
+  const { user, switchUser, isAR } = useAuth();
   const location = useLocation();
 
   const navItems = [
@@ -41,7 +42,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </nav>
           </div>
 
-          {/* User switcher */}
+          {/* User switcher (mock auth) */}
           <div className="flex items-center gap-3">
             <span className="text-xs text-primary-foreground/60 hidden sm:inline">Signed in as:</span>
             <Select value={user.id} onValueChange={switchUser}>
@@ -49,7 +50,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {users.map(u => (
+                {MOCK_USERS.map(u => (
                   <SelectItem key={u.id} value={u.id}>
                     {u.name} ({u.role === 'ar' ? 'A&R' : 'Employee'})
                   </SelectItem>

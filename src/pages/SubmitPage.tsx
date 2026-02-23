@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAddSubmission } from '@/hooks/use-api';
+import { store } from '@/lib/store';
 import { PLATFORMS, PLATFORM_PLACEHOLDERS, TERRITORIES, GENRES, Platform } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,6 @@ const SubmitPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const addSubmission = useAddSubmission();
 
   const [artistName, setArtistName] = useState('');
   const [territory, setTerritory] = useState('');
@@ -45,6 +44,7 @@ const SubmitPage: React.FC = () => {
     if (genre === 'Other' && !customGenre.trim()) errs.customGenre = 'Please specify the genre.';
     if (!rationale.trim()) errs.rationale = 'Rationale is required.';
     if (rationale.length > 300) errs.rationale = 'Rationale must be 300 characters or less.';
+    
 
     const hasValidLink = links.some(l => l.url.trim().length > 0);
     if (!hasValidLink) errs.links = 'At least one valid URL is required.';
@@ -64,28 +64,24 @@ const SubmitPage: React.FC = () => {
     if (!validate()) return;
 
     const validLinks = links.filter(l => l.url.trim());
-    addSubmission.mutate(
-      {
-        artist_name: artistName.trim(),
-        territory,
-        genre,
-        custom_genre: genre === 'Other' ? customGenre.trim() : undefined,
-        rationale: rationale.trim(),
-        submitted_by: user.id,
-        image_url: imageData || undefined,
-        links: validLinks.map(l => ({
-          id: '',
-          submission_id: '',
-          platform: l.platform,
-          url: l.url.trim(),
-          created_at: '',
-        })),
-      },
-      {
-        onSuccess: () => navigate('/', { state: { submitted: true } }),
-        onError: (err) => toast({ title: 'Submission failed', description: String(err), variant: 'destructive' }),
-      },
-    );
+    store.addSubmission({
+      artist_name: artistName.trim(),
+      territory,
+      genre,
+      custom_genre: genre === 'Other' ? customGenre.trim() : undefined,
+      rationale: rationale.trim(),
+      submitted_by: user.id,
+      image_url: imageData || undefined,
+      links: validLinks.map(l => ({
+        id: '',
+        submission_id: '',
+        platform: l.platform,
+        url: l.url.trim(),
+        created_at: '',
+      })),
+    });
+
+    navigate('/', { state: { submitted: true } });
   };
 
   return (
@@ -99,7 +95,14 @@ const SubmitPage: React.FC = () => {
         {/* Artist Name */}
         <div className="space-y-1.5">
           <Label htmlFor="artist-name">Artist Name *</Label>
-          <Input id="artist-name" value={artistName} onChange={e => setArtistName(e.target.value)} placeholder="Enter artist name" className="bmg-focus-ring" maxLength={100} />
+          <Input
+            id="artist-name"
+            value={artistName}
+            onChange={e => setArtistName(e.target.value)}
+            placeholder="Enter artist name"
+            className="bmg-focus-ring"
+            maxLength={100}
+          />
           {errors.artistName && <p className="text-xs text-destructive">{errors.artistName}</p>}
         </div>
 
@@ -111,7 +114,13 @@ const SubmitPage: React.FC = () => {
               <div className="w-16 h-16 rounded bg-muted overflow-hidden shrink-0">
                 <img src={imageData} alt="Artist preview" className="w-full h-full object-cover" />
               </div>
-              <button type="button" onClick={() => setImageData(null)} className="text-xs font-medium text-destructive hover:underline">Remove image</button>
+              <button
+                type="button"
+                onClick={() => setImageData(null)}
+                className="text-xs font-medium text-destructive hover:underline"
+              >
+                Remove image
+              </button>
             </div>
           ) : (
             <div>
@@ -139,22 +148,42 @@ const SubmitPage: React.FC = () => {
           {errors.links && <p className="text-xs text-destructive">{errors.links}</p>}
           {links.map((link, i) => (
             <div key={i} className="flex gap-2 items-start">
-              <Select value={link.platform} onValueChange={(v: Platform) => updateLink(i, 'platform', v)}>
-                <SelectTrigger className="w-[140px] h-9 text-sm shrink-0"><SelectValue /></SelectTrigger>
-                <SelectContent>{PLATFORMS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+              <Select
+                value={link.platform}
+                onValueChange={(v: Platform) => updateLink(i, 'platform', v)}
+              >
+                <SelectTrigger className="w-[140px] h-9 text-sm shrink-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PLATFORMS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                </SelectContent>
               </Select>
               <div className="flex-1">
-                <Input value={link.url} onChange={e => updateLink(i, 'url', e.target.value)} placeholder={PLATFORM_PLACEHOLDERS[link.platform]} className="bmg-focus-ring text-sm" />
+                <Input
+                  value={link.url}
+                  onChange={e => updateLink(i, 'url', e.target.value)}
+                  placeholder={PLATFORM_PLACEHOLDERS[link.platform]}
+                  className="bmg-focus-ring text-sm"
+                />
                 {errors[`link_${i}`] && <p className="text-xs text-destructive mt-1">{errors[`link_${i}`]}</p>}
               </div>
               {links.length > 1 && (
-                <button type="button" onClick={() => removeLink(i)} className="p-2 text-muted-foreground hover:text-destructive transition-colors shrink-0">
+                <button
+                  type="button"
+                  onClick={() => removeLink(i)}
+                  className="p-2 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                >
                   <Trash2 className="h-4 w-4" />
                 </button>
               )}
             </div>
           ))}
-          <button type="button" onClick={addLink} className="inline-flex items-center gap-1 text-xs font-medium bmg-link">
+          <button
+            type="button"
+            onClick={addLink}
+            className="inline-flex items-center gap-1 text-xs font-medium bmg-link"
+          >
             <Plus className="h-3 w-3" /> Add another link
           </button>
         </div>
@@ -163,8 +192,12 @@ const SubmitPage: React.FC = () => {
         <div className="space-y-1.5">
           <Label>Territory *</Label>
           <Select value={territory} onValueChange={setTerritory}>
-            <SelectTrigger className="bmg-focus-ring"><SelectValue placeholder="Select territory" /></SelectTrigger>
-            <SelectContent>{TERRITORIES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+            <SelectTrigger className="bmg-focus-ring">
+              <SelectValue placeholder="Select territory" />
+            </SelectTrigger>
+            <SelectContent>
+              {TERRITORIES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
           </Select>
           {errors.territory && <p className="text-xs text-destructive">{errors.territory}</p>}
         </div>
@@ -173,12 +206,22 @@ const SubmitPage: React.FC = () => {
         <div className="space-y-1.5">
           <Label>Genre *</Label>
           <Select value={genre} onValueChange={setGenre}>
-            <SelectTrigger className="bmg-focus-ring"><SelectValue placeholder="Select genre" /></SelectTrigger>
-            <SelectContent>{GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+            <SelectTrigger className="bmg-focus-ring">
+              <SelectValue placeholder="Select genre" />
+            </SelectTrigger>
+            <SelectContent>
+              {GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+            </SelectContent>
           </Select>
           {genre === 'Other' && (
             <div className="mt-2">
-              <Input value={customGenre} onChange={e => setCustomGenre(e.target.value)} placeholder="Specify genre (e.g., Amapiano, Drill, Hyperpop)" className="bmg-focus-ring text-sm" maxLength={50} />
+              <Input
+                value={customGenre}
+                onChange={e => setCustomGenre(e.target.value)}
+                placeholder="Specify genre (e.g., Amapiano, Drill, Hyperpop)"
+                className="bmg-focus-ring text-sm"
+                maxLength={50}
+              />
               {errors.customGenre && <p className="text-xs text-destructive mt-1">{errors.customGenre}</p>}
             </div>
           )}
@@ -188,13 +231,21 @@ const SubmitPage: React.FC = () => {
         {/* Rationale */}
         <div className="space-y-1.5">
           <Label htmlFor="rationale">Short Rationale * <span className="text-muted-foreground font-normal">({rationale.length}/300)</span></Label>
-          <Textarea id="rationale" value={rationale} onChange={e => setRationale(e.target.value)} placeholder="Why should BMG look at this artist?" maxLength={300} rows={3} className="bmg-focus-ring resize-none" />
+          <Textarea
+            id="rationale"
+            value={rationale}
+            onChange={e => setRationale(e.target.value)}
+            placeholder="Why should BMG look at this artist?"
+            maxLength={300}
+            rows={3}
+            className="bmg-focus-ring resize-none"
+          />
           {errors.rationale && <p className="text-xs text-destructive">{errors.rationale}</p>}
         </div>
 
         <div className="pt-2">
-          <Button type="submit" className="w-full sm:w-auto" disabled={addSubmission.isPending}>
-            {addSubmission.isPending ? 'Submitting…' : 'Submit Artist'}
+          <Button type="submit" className="w-full sm:w-auto">
+            Submit Artist
           </Button>
         </div>
       </form>

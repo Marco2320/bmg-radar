@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Submission } from '@/types';
+import { store } from '@/lib/store';
 import { useAuth } from '@/contexts/AuthContext';
-import { useVoteCount, useHasVoted, useCommentCount, useToggleVote, useUser } from '@/hooks/use-api';
 import StatusBadge from '@/components/StatusBadge';
 import { ArrowUp, MessageSquare, ExternalLink, ChevronDown, ChevronUp, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,13 +16,11 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onVoteChang
   const { user, isAR } = useAuth();
   const [showLinks, setShowLinks] = useState(false);
 
-  const { data: voteCount = 0 } = useVoteCount(submission.id);
-  const { data: hasVoted = false } = useHasVoted(submission.id, user.id);
-  const { data: commentCount = 0 } = useCommentCount(submission.id);
-  const { data: submitter } = useUser(submission.submitted_by);
-  const toggleVote = useToggleVote();
-
+  const voteCount = store.getVoteCount(submission.id);
+  const hasVoted = store.hasVoted(submission.id, user.id);
+  const commentCount = store.getCommentCount(submission.id);
   const primaryLink = submission.links[0];
+  const submitter = store.getUser(submission.submitted_by);
   const displayGenre = submission.genre === 'Other' && submission.custom_genre
     ? `Other (${submission.custom_genre})`
     : submission.genre;
@@ -30,9 +28,8 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onVoteChang
   const handleVote = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleVote.mutate({ submissionId: submission.id, userId: user.id }, {
-      onSuccess: () => onVoteChange?.(),
-    });
+    store.toggleVote(submission.id, user.id);
+    onVoteChange?.();
   };
 
   return (

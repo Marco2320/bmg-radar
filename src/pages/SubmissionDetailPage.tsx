@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { store } from '@/lib/store';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSubmission, useVoteCount, useHasVoted, useComments, useToggleVote, useAddComment, useUpdateStatus, useUser } from '@/hooks/use-api';
 import { STATUSES, SubmissionStatus } from '@/types';
 import StatusBadge from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
@@ -9,34 +9,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowUp, ExternalLink, ArrowLeft, MessageSquare, Music } from 'lucide-react';
 
-const CommentAuthor: React.FC<{ userId: string }> = ({ userId }) => {
-  const { data: author } = useUser(userId);
-  return <span className="text-sm font-medium">{author?.name ?? '…'}</span>;
-};
-
 const SubmissionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user, isAR } = useAuth();
   const [commentText, setCommentText] = useState('');
+  const [, setTick] = useState(0);
 
-  const { data: submission, isLoading } = useSubmission(id || '');
-  const { data: voteCount = 0 } = useVoteCount(id || '');
-  const { data: hasVoted = false } = useHasVoted(id || '', user.id);
-  const { data: comments = [] } = useComments(id || '');
-  const { data: submitter } = useUser(submission?.submitted_by || '');
+  const refresh = () => setTick(t => t + 1);
 
-  const toggleVote = useToggleVote();
-  const addComment = useAddComment();
-  const updateStatus = useUpdateStatus();
-
-  if (isLoading) {
-    return (
-      <div className="container px-6 py-12 text-center">
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      </div>
-    );
-  }
-
+  const submission = store.getSubmission(id || '');
   if (!submission) {
     return (
       <div className="container px-6 py-12 text-center">
@@ -46,21 +27,27 @@ const SubmissionDetailPage: React.FC = () => {
     );
   }
 
+  const voteCount = store.getVoteCount(submission.id);
+  const hasVoted = store.hasVoted(submission.id, user.id);
+  const comments = store.getComments(submission.id);
+  const submitter = store.getUser(submission.submitted_by);
+
   const handleVote = () => {
-    toggleVote.mutate({ submissionId: submission.id, userId: user.id });
+    store.toggleVote(submission.id, user.id);
+    refresh();
   };
 
   const handleComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim()) return;
-    addComment.mutate(
-      { submissionId: submission.id, userId: user.id, text: commentText.trim() },
-      { onSuccess: () => setCommentText('') },
-    );
+    store.addComment(submission.id, user.id, commentText.trim());
+    setCommentText('');
+    refresh();
   };
 
   const handleStatusChange = (status: SubmissionStatus) => {
-    updateStatus.mutate({ id: submission.id, status });
+    store.updateStatus(submission.id, status);
+    refresh();
   };
 
   return (
@@ -158,17 +145,20 @@ const SubmissionDetailPage: React.FC = () => {
           {comments.length === 0 ? (
             <p className="text-sm text-muted-foreground">No comments yet.</p>
           ) : (
-            comments.map(c => (
-              <div key={c.id} className="bmg-card p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <CommentAuthor userId={c.user_id} />
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(c.created_at).toLocaleDateString()} {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
+            comments.map(c => {
+              const author = store.getUser(c.user_id);
+              return (
+                <div key={c.id} className="bmg-card p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-medium">{author?.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(c.created_at).toLocaleDateString()} {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <p className="text-sm text-foreground/80">{c.comment_text}</p>
                 </div>
-                <p className="text-sm text-foreground/80">{c.comment_text}</p>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
@@ -181,8 +171,8 @@ const SubmissionDetailPage: React.FC = () => {
             className="bmg-focus-ring resize-none"
             maxLength={500}
           />
-          <Button type="submit" disabled={!commentText.trim() || addComment.isPending} size="sm">
-            {addComment.isPending ? 'Posting…' : 'Post Comment'}
+          <Button type="submit" disabled={!commentText.trim()} size="sm">
+            Post Comment
           </Button>
         </form>
       </div>

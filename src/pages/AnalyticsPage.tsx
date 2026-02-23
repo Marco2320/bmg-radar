@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
+import { store } from '@/lib/store';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSubmissions, useAllVotes } from '@/hooks/use-api';
 import { Navigate, Link } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, MessageCircle, ArrowUpRight } from 'lucide-react';
@@ -9,22 +9,25 @@ const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 const AnalyticsPage: React.FC = () => {
   const { isAR } = useAuth();
-  const { data: submissions = [], isLoading } = useSubmissions();
-  const { data: allVotes = [] } = useAllVotes();
+  const submissions = store.getSubmissions();
+  const allVotes = store.getAllVotes();
 
   const now = Date.now();
   const sevenDaysAgo = new Date(now - SEVEN_DAYS_MS).toISOString();
 
   const trending = useMemo(() => {
+    const allComments = submissions.flatMap(s => store.getComments(s.id));
+
     const scored = submissions.map(s => {
       const recentVotes = allVotes.filter(v => v.submission_id === s.id && v.created_at >= sevenDaysAgo).length;
-      const engagementScore = recentVotes * 2;
-      return { ...s, recentVotes, recentComments: 0, engagementScore };
+      const recentComments = allComments.filter(c => c.submission_id === s.id && c.created_at >= sevenDaysAgo).length;
+      const engagementScore = recentVotes * 2 + recentComments * 3;
+      return { ...s, recentVotes, recentComments, engagementScore };
     });
 
     const topTrending = [...scored].sort((a, b) => b.engagementScore - a.engagementScore).slice(0, 5);
     const fastestRising = [...scored].sort((a, b) => b.recentVotes - a.recentVotes)[0] || null;
-    const mostDiscussed = null; // Would need comment counts from API
+    const mostDiscussed = [...scored].sort((a, b) => b.recentComments - a.recentComments)[0] || null;
 
     return { topTrending, fastestRising, mostDiscussed };
   }, [submissions, allVotes, sevenDaysAgo]);
@@ -39,7 +42,7 @@ const AnalyticsPage: React.FC = () => {
     });
 
     const topUpvoted = [...submissions]
-      .map(s => ({ ...s, votes: (s as any).vote_count ?? allVotes.filter(v => v.submission_id === s.id).length }))
+      .map(s => ({ ...s, votes: store.getVoteCount(s.id) }))
       .sort((a, b) => b.votes - a.votes)
       .slice(0, 5);
 
@@ -55,14 +58,6 @@ const AnalyticsPage: React.FC = () => {
   const chartColor = 'hsl(199, 57%, 19%)';
 
   if (!isAR) return <Navigate to="/" replace />;
-
-  if (isLoading) {
-    return (
-      <div className="container px-6 py-12 text-center">
-        <p className="text-sm text-muted-foreground">Loading analytics…</p>
-      </div>
-    );
-  }
 
   return (
     <div className="container px-6 py-8 max-w-4xl">
@@ -90,6 +85,7 @@ const AnalyticsPage: React.FC = () => {
           <div className="flex-1 h-px bg-accent/60" />
         </div>
 
+        {/* Top 5 Trending */}
         <div className="bmg-card divide-y divide-border mb-4">
           {trending.topTrending.length === 0 ? (
             <div className="px-5 py-6 text-sm text-muted-foreground text-center">No activity in the last 7 days.</div>
@@ -103,12 +99,14 @@ const AnalyticsPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" />{s.recentVotes} votes</span>
+                  <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" />{s.recentComments} comments</span>
                 </div>
               </Link>
             ))
           )}
         </div>
 
+        {/* Fastest Rising & Most Discussed */}
         <div className="grid grid-cols-2 gap-4">
           {trending.fastestRising && trending.fastestRising.recentVotes > 0 && (
             <Link to={`/submission/${trending.fastestRising.id}`} className="bmg-card p-4 hover:bg-muted/50 transition-colors">
@@ -118,6 +116,16 @@ const AnalyticsPage: React.FC = () => {
               </div>
               <p className="text-sm font-medium">{trending.fastestRising.artist_name}</p>
               <p className="text-xs text-muted-foreground">{trending.fastestRising.recentVotes} votes this week</p>
+            </Link>
+          )}
+          {trending.mostDiscussed && trending.mostDiscussed.recentComments > 0 && (
+            <Link to={`/submission/${trending.mostDiscussed.id}`} className="bmg-card p-4 hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-1.5 mb-2">
+                <MessageCircle className="w-3.5 h-3.5 text-accent-foreground" />
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Most Discussed</p>
+              </div>
+              <p className="text-sm font-medium">{trending.mostDiscussed.artist_name}</p>
+              <p className="text-xs text-muted-foreground">{trending.mostDiscussed.recentComments} comments this week</p>
             </Link>
           )}
         </div>
