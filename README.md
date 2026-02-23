@@ -1,18 +1,5 @@
 # Welcome to your Lovable project
 
-## Backend (Production DB)
-
-This repository now includes a production-ready backend at `/Users/Marco/Documents/New project/backend`:
-
-- FastAPI API layer
-- PostgreSQL schema with constraints and indexes
-- Alembic migrations
-- Seed script
-
-Run instructions are in `/Users/Marco/Documents/New project/backend/README.md`.
-
-Frontend API adapter is available at `/Users/Marco/Documents/New project/src/lib/api-store.ts` and points to `VITE_API_BASE_URL`.
-
 ## Project info
 
 **URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
