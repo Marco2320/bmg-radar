@@ -62,26 +62,40 @@ const FeedPage: React.FC = () => {
   const paged = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   return (
-    <div className="container px-6 py-8 max-w-3xl">
-      {/* Success Banner */}
+    <>
+      {/* Full-screen overlay banner */}
       {showBanner && (
-        <div className="mb-6 rounded-lg border border-border bg-muted/50 p-5 relative">
-          <button
-            onClick={() => setShowBanner(false)}
-            className="absolute top-3 right-3 p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          <div className="flex items-start gap-3">
-            <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-            <div>
-              <h3 className="font-semibold text-base mb-1">Thanks for submitting this artist to BMG Radar!</h3>
-              <p className="text-sm text-muted-foreground">The recommendation is now live on the platform and visible to the A&R teams. Your contribution helps surface new talent and keeps our discovery culture active across BMG.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-fade-in">
+          <div className="relative mx-4 w-full max-w-lg rounded-xl border border-border bg-card p-8 shadow-lg text-center animate-scale-in">
+            <button
+              onClick={() => setShowBanner(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {/* Looping music bars animation */}
+            <div className="flex items-end justify-center gap-1 mb-5 h-8">
+              {[0, 0.15, 0.3, 0.45, 0.6].map((delay, i) => (
+                <span
+                  key={i}
+                  className="w-1.5 rounded-full bg-primary"
+                  style={{
+                    animation: `musicBar 1s ease-in-out ${delay}s infinite alternate`,
+                  }}
+                />
+              ))}
             </div>
+
+            <h3 className="font-semibold text-lg mb-2">Thanks for submitting this artist to BMG Radar!</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              The recommendation is now live on the platform and visible to the A&R teams. Your contribution helps surface new talent and keeps our discovery culture active across BMG.
+            </p>
           </div>
         </div>
       )}
 
+      <div className="container px-6 py-8 max-w-3xl">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold mb-1">Artist Feed</h1>
         <p className="text-sm text-muted-foreground">Browse submitted artists and surface discovery signals.</p>
@@ -206,6 +220,7 @@ const FeedPage: React.FC = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 
