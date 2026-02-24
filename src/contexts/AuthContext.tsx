@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { User, UserRole } from '@/types';
+import { User } from '@/types';
 import { MOCK_USERS } from '@/lib/store';
 
 interface AuthContextType {
   user: User;
   switchUser: (userId: string) => void;
   isAR: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -18,8 +19,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user) setCurrentUser(user);
   }, []);
 
+  const isAR = currentUser.role === 'ar' || currentUser.role === 'admin';
+  const isAdmin = currentUser.role === 'admin';
+
   return (
-    <AuthContext.Provider value={{ user: currentUser, switchUser, isAR: currentUser.role === 'ar' }}>
+    <AuthContext.Provider value={{ user: currentUser, switchUser, isAR, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

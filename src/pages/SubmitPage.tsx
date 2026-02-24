@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Trash2, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface LinkEntry {
@@ -28,6 +29,7 @@ const SubmitPage: React.FC = () => {
   const [rationale, setRationale] = useState('');
   const [imageData, setImageData] = useState<string | null>(null);
   const [links, setLinks] = useState<LinkEntry[]>([{ platform: 'Spotify', url: '' }]);
+  const [acknowledged, setAcknowledged] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const addLink = () => setLinks([...links, { platform: 'Spotify', url: '' }]);
@@ -44,7 +46,7 @@ const SubmitPage: React.FC = () => {
     if (genre === 'Other' && !customGenre.trim()) errs.customGenre = 'Please specify the genre.';
     if (!rationale.trim()) errs.rationale = 'Rationale is required.';
     if (rationale.length > 300) errs.rationale = 'Rationale must be 300 characters or less.';
-    
+    if (!acknowledged) errs.acknowledged = 'Please acknowledge the anonymous submission policy.';
 
     const hasValidLink = links.some(l => l.url.trim().length > 0);
     if (!hasValidLink) errs.links = 'At least one valid URL is required.';
@@ -242,6 +244,26 @@ const SubmitPage: React.FC = () => {
           />
           {errors.rationale && <p className="text-xs text-destructive">{errors.rationale}</p>}
         </div>
+
+        {/* Anonymous acknowledgment */}
+        <div className="bmg-section-muted flex items-start gap-3 p-4">
+          <Checkbox
+            id="anonymous-ack"
+            checked={acknowledged}
+            onCheckedChange={(v) => setAcknowledged(v === true)}
+            className="mt-0.5"
+          />
+          <div>
+            <label htmlFor="anonymous-ack" className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
+              Anonymous Submission
+            </label>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Your name will be hidden from other employees. Only A&R team members can see who submitted this artist.
+            </p>
+          </div>
+        </div>
+        {errors.acknowledged && <p className="text-xs text-destructive -mt-3">{errors.acknowledged}</p>}
 
         <div className="pt-2">
           <Button type="submit" className="w-full sm:w-auto">
