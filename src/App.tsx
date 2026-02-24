@@ -8,7 +8,9 @@ import Layout from "@/components/Layout";
 import FeedPage from "@/pages/FeedPage";
 import SubmitPage from "@/pages/SubmitPage";
 import SubmissionDetailPage from "@/pages/SubmissionDetailPage";
-import AnalyticsPage from "@/pages/AnalyticsPage";
+import TrendingPage from "@/pages/TrendingPage";
+import ScoutingPage from "@/pages/ScoutingPage";
+import OverviewPage from "@/pages/OverviewPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,7 +27,9 @@ const App = () => (
               <Route path="/" element={<FeedPage />} />
               <Route path="/submit" element={<SubmitPage />} />
               <Route path="/submission/:id" element={<SubmissionDetailPage />} />
-              <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="/trending" element={<TrendingPage />} />
+              <Route path="/scouting" element={<ScoutingPage />} />
+              <Route path="/overview" element={<OverviewPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

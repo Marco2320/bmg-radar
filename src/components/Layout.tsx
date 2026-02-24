@@ -3,21 +3,28 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { MOCK_USERS } from '@/lib/store';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart3, Plus, Radio } from 'lucide-react';
+import { Radio } from 'lucide-react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, switchUser, isAR } = useAuth();
+  const { user, switchUser, isAR, isAdmin } = useAuth();
   const location = useLocation();
 
   const navItems = [
     { to: '/', label: 'Feed' },
     { to: '/submit', label: 'Submit Artist' },
-    ...(isAR ? [{ to: '/analytics', label: 'Analytics' }] : []),
+    { to: '/trending', label: 'Trending' },
+    ...(isAR ? [{ to: '/scouting', label: 'Scouting' }] : []),
+    ...(isAdmin ? [{ to: '/overview', label: 'Overview' }] : []),
   ];
+
+  const roleLabel = (role: string) => {
+    if (role === 'admin') return 'Admin';
+    if (role === 'ar') return 'A&R';
+    return 'Employee';
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Header */}
       <header className="bmg-header">
         <div className="container flex items-center justify-between h-14 px-6">
           <div className="flex items-center gap-8">
@@ -42,7 +49,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </nav>
           </div>
 
-          {/* User switcher (mock auth) */}
           <div className="flex items-center gap-3">
             <span className="text-xs text-primary-foreground/60 hidden sm:inline">Signed in as:</span>
             <Select value={user.id} onValueChange={switchUser}>
@@ -52,7 +58,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <SelectContent>
                 {MOCK_USERS.map(u => (
                   <SelectItem key={u.id} value={u.id}>
-                    {u.name} ({u.role === 'ar' ? 'A&R' : 'Employee'})
+                    {u.name} ({roleLabel(u.role)})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -61,14 +67,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </header>
 
-      {/* Mobile nav */}
       <nav className="md:hidden bmg-header border-t border-primary-foreground/10">
-        <div className="container flex gap-1 px-6 py-2">
+        <div className="container flex gap-1 px-6 py-2 overflow-x-auto">
           {navItems.map(item => (
             <Link
               key={item.to}
               to={item.to}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors whitespace-nowrap ${
                 location.pathname === item.to
                   ? 'bg-accent text-accent-foreground'
                   : 'text-primary-foreground/80 hover:text-primary-foreground'
@@ -80,7 +85,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </nav>
 
-      {/* Content */}
       <main className="flex-1">
         {children}
       </main>

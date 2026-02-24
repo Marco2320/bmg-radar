@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { store } from '@/lib/store';
 import { useAuth } from '@/contexts/AuthContext';
-import { STATUSES, SubmissionStatus } from '@/types';
 import StatusBadge from '@/components/StatusBadge';
+import ReactionBar from '@/components/ReactionBar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowUp, ExternalLink, ArrowLeft, MessageSquare, Music } from 'lucide-react';
+import { ExternalLink, ArrowLeft, MessageSquare, Music } from 'lucide-react';
+import { SubmissionStatus } from '@/types';
 
 const SubmissionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,15 +27,8 @@ const SubmissionDetailPage: React.FC = () => {
     );
   }
 
-  const voteCount = store.getVoteCount(submission.id);
-  const hasVoted = store.hasVoted(submission.id, user.id);
   const comments = store.getComments(submission.id);
   const submitter = store.getUser(submission.submitted_by);
-
-  const handleVote = () => {
-    store.toggleVote(submission.id, user.id);
-    refresh();
-  };
 
   const handleComment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,29 +66,32 @@ const SubmissionDetailPage: React.FC = () => {
                 <span>·</span>
                 <span>{submission.genre === 'Other' && submission.custom_genre ? `Other (${submission.custom_genre})` : submission.genre}</span>
                 <span>·</span>
-                <span>by {submitter?.name}</span>
+                {isAR ? (
+                  <span>by {submitter?.name}</span>
+                ) : (
+                  <span className="italic">Anonymous</span>
+                )}
                 <span>·</span>
                 <span>{new Date(submission.created_at).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {isAR && <StatusBadge status={submission.status} />}
-            <button
-              onClick={handleVote}
-              className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors bmg-focus-ring ${
-                hasVoted
-                  ? 'bg-accent text-accent-foreground'
-                  : 'bg-muted text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <ArrowUp className="h-4 w-4" />
-              {voteCount}
-            </button>
+            {isAR && (
+              <StatusBadge
+                status={submission.status}
+                onStatusChange={handleStatusChange}
+              />
+            )}
           </div>
         </div>
 
         <p className="text-sm text-foreground/80 mb-5">{submission.rationale}</p>
+
+        {/* Reactions */}
+        <div className="mb-5">
+          <ReactionBar submissionId={submission.id} onReactionChange={refresh} />
+        </div>
 
         {/* Links */}
         <div className="space-y-2">
@@ -115,23 +111,6 @@ const SubmissionDetailPage: React.FC = () => {
             ))}
           </div>
         </div>
-
-        {/* A&R Status Control */}
-        {isAR && (
-          <div className="mt-5 pt-5 border-t border-border">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</span>
-              <Select value={submission.status} onValueChange={handleStatusChange}>
-                <SelectTrigger className="w-[160px] h-8 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Comments */}

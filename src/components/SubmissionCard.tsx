@@ -4,8 +4,8 @@ import { Submission } from '@/types';
 import { store } from '@/lib/store';
 import { useAuth } from '@/contexts/AuthContext';
 import StatusBadge from '@/components/StatusBadge';
-import { ArrowUp, MessageSquare, ExternalLink, ChevronDown, ChevronUp, Music } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import ReactionBar from '@/components/ReactionBar';
+import { MessageSquare, ExternalLink, ChevronDown, ChevronUp, Music } from 'lucide-react';
 
 interface SubmissionCardProps {
   submission: Submission;
@@ -16,8 +16,6 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onVoteChang
   const { user, isAR } = useAuth();
   const [showLinks, setShowLinks] = useState(false);
 
-  const voteCount = store.getVoteCount(submission.id);
-  const hasVoted = store.hasVoted(submission.id, user.id);
   const commentCount = store.getCommentCount(submission.id);
   const primaryLink = submission.links[0];
   const submitter = store.getUser(submission.submitted_by);
@@ -25,32 +23,14 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onVoteChang
     ? `Other (${submission.custom_genre})`
     : submission.genre;
 
-  const handleVote = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    store.toggleVote(submission.id, user.id);
+  const handleStatusChange = (newStatus: Submission['status']) => {
+    store.updateStatus(submission.id, newStatus);
     onVoteChange?.();
   };
 
   return (
     <div className="bmg-card p-5">
       <div className="flex gap-4">
-        {/* Vote column */}
-        <div className="flex flex-col items-center gap-1 pt-0.5">
-          <button
-            onClick={handleVote}
-            className={`flex flex-col items-center gap-0.5 rounded p-1.5 transition-colors bmg-focus-ring ${
-              hasVoted
-                ? 'text-accent-foreground bg-accent'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-            }`}
-            title={hasVoted ? 'Remove vote' : 'Upvote'}
-          >
-            <ArrowUp className="h-4 w-4" />
-            <span className="text-xs font-semibold">{voteCount}</span>
-          </button>
-        </div>
-
         {/* Artist image */}
         <div className="w-12 h-12 rounded bg-muted flex items-center justify-center shrink-0 overflow-hidden">
           {submission.image_url ? (
@@ -76,7 +56,12 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onVoteChang
                 {submission.artist_name}
               </h3>
             </Link>
-            {isAR && <StatusBadge status={submission.status} />}
+            {isAR && (
+              <StatusBadge
+                status={submission.status}
+                onStatusChange={handleStatusChange}
+              />
+            )}
           </div>
 
           <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
@@ -84,12 +69,21 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onVoteChang
             <span>·</span>
             <span>{displayGenre}</span>
             <span>·</span>
-            <span>{submitter?.name}</span>
+            {isAR ? (
+              <span>{submitter?.name}</span>
+            ) : (
+              <span className="italic">Anonymous</span>
+            )}
             <span>·</span>
             <span>{new Date(submission.created_at).toLocaleDateString()}</span>
           </div>
 
           <p className="text-sm text-foreground/80 mb-3 line-clamp-2">{submission.rationale}</p>
+
+          {/* Reactions */}
+          <div className="flex items-center gap-3 flex-wrap mb-2">
+            <ReactionBar submissionId={submission.id} onReactionChange={onVoteChange} compact />
+          </div>
 
           <div className="flex items-center gap-3 flex-wrap">
             {primaryLink && (

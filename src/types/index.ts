@@ -1,4 +1,4 @@
-export type UserRole = 'employee' | 'ar';
+export type UserRole = 'employee' | 'ar' | 'admin';
 
 export interface User {
   id: string;
@@ -17,7 +17,9 @@ export type Platform =
   | 'Bandcamp'
   | 'Other';
 
-export type SubmissionStatus = 'New' | 'Reviewed' | 'Passed' | 'Shortlisted';
+export type SubmissionStatus = 'New' | 'Opened' | 'Reviewed' | 'Passed' | 'Shortlisted';
+
+export type ReactionType = 'like' | 'love' | 'wow' | 'discovery';
 
 export interface SubmissionLink {
   id: string;
@@ -41,10 +43,11 @@ export interface Submission {
   image_url?: string;
 }
 
-export interface Vote {
+export interface Reaction {
   id: string;
   submission_id: string;
   user_id: string;
+  type: ReactionType;
   created_at: string;
 }
 
@@ -55,6 +58,22 @@ export interface Comment {
   comment_text: string;
   created_at: string;
 }
+
+export const REACTION_EMOJIS: Record<ReactionType, string> = {
+  like: '👍',
+  love: '❤️',
+  wow: '🤯',
+  discovery: '🔥',
+};
+
+export const REACTION_LABELS: Record<ReactionType, string> = {
+  like: 'Like',
+  love: 'Love',
+  wow: 'Wow',
+  discovery: 'New Discovery',
+};
+
+export const REACTION_TYPES: ReactionType[] = ['like', 'love', 'wow', 'discovery'];
 
 export const PLATFORMS: Platform[] = [
   'Spotify', 'YouTube', 'TikTok', 'Instagram', 'Apple Music', 'SoundCloud', 'Bandcamp', 'Other'
@@ -72,7 +91,7 @@ export const PLATFORM_PLACEHOLDERS: Record<Platform, string> = {
 };
 
 export const TERRITORIES = [
-  'North America', 'Latin America', 'UK', 'DACH', 'France',
+  'North America', 'Latin America', 'Brazil', 'Mexico', 'UK', 'GSA', 'France',
   'Nordics', 'Southern Europe', 'Eastern Europe', 'Asia Pacific',
   'Africa', 'Middle East', 'Australia/NZ',
 ];
@@ -83,4 +102,4 @@ export const GENRES = [
   'Indie', 'K-Pop', 'Afrobeats', 'Reggaeton', 'Other',
 ];
 
-export const STATUSES: SubmissionStatus[] = ['New', 'Reviewed', 'Passed', 'Shortlisted'];
+export const STATUSES: SubmissionStatus[] = ['New', 'Opened', 'Reviewed', 'Passed', 'Shortlisted'];

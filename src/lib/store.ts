@@ -1,4 +1,4 @@
-import { Submission, Vote, Comment, User } from '@/types';
+import { Submission, Reaction, Comment, User } from '@/types';
 
 // Mock users
 export const MOCK_USERS: User[] = [
@@ -6,12 +6,13 @@ export const MOCK_USERS: User[] = [
   { id: 'u2', name: 'Marcus Webb', email: 'marcus.webb@bmg.com', role: 'ar' },
   { id: 'u3', name: 'Laura Müller', email: 'laura.muller@bmg.com', role: 'employee' },
   { id: 'u4', name: 'James Okafor', email: 'james.okafor@bmg.com', role: 'employee' },
+  { id: 'u5', name: 'Alex Richter', email: 'alex.richter@bmg.com', role: 'admin' },
 ];
 
 let submissions: Submission[] = [
   {
-    id: 's1', artist_name: 'Mira Voss', territory: 'DACH', genre: 'Electronic/Dance',
-    rationale: 'Strong streaming growth in DACH region. Unique blend of techno and ambient. Building organic following on TikTok with 50k+ followers.',
+    id: 's1', artist_name: 'Mira Voss', territory: 'GSA', genre: 'Electronic/Dance',
+    rationale: 'Strong streaming growth in GSA region. Unique blend of techno and ambient. Building organic following on TikTok with 50k+ followers.',
     submitted_by: 'u1', status: 'New', created_at: '2026-02-18T10:30:00Z',
     links: [
       { id: 'l1', submission_id: 's1', platform: 'Spotify', url: 'https://open.spotify.com/artist/mira-voss', created_at: '2026-02-18T10:30:00Z' },
@@ -48,17 +49,17 @@ let submissions: Submission[] = [
   },
 ];
 
-let votes: Vote[] = [
-  { id: 'v1', submission_id: 's1', user_id: 'u3', created_at: '2026-02-18T12:00:00Z' },
-  { id: 'v2', submission_id: 's1', user_id: 'u4', created_at: '2026-02-18T13:00:00Z' },
-  { id: 'v3', submission_id: 's2', user_id: 'u1', created_at: '2026-02-17T09:00:00Z' },
-  { id: 'v4', submission_id: 's2', user_id: 'u3', created_at: '2026-02-17T10:00:00Z' },
-  { id: 'v5', submission_id: 's2', user_id: 'u2', created_at: '2026-02-17T11:00:00Z' },
-  { id: 'v6', submission_id: 's3', user_id: 'u1', created_at: '2026-02-15T08:00:00Z' },
-  { id: 'v7', submission_id: 's3', user_id: 'u2', created_at: '2026-02-15T09:00:00Z' },
-  { id: 'v8', submission_id: 's3', user_id: 'u3', created_at: '2026-02-15T10:00:00Z' },
-  { id: 'v9', submission_id: 's3', user_id: 'u4', created_at: '2026-02-15T11:00:00Z' },
-  { id: 'v10', submission_id: 's4', user_id: 'u2', created_at: '2026-02-20T17:00:00Z' },
+let reactions: Reaction[] = [
+  { id: 'r1', submission_id: 's1', user_id: 'u3', type: 'love', created_at: '2026-02-18T12:00:00Z' },
+  { id: 'r2', submission_id: 's1', user_id: 'u4', type: 'wow', created_at: '2026-02-18T13:00:00Z' },
+  { id: 'r3', submission_id: 's2', user_id: 'u1', type: 'like', created_at: '2026-02-17T09:00:00Z' },
+  { id: 'r4', submission_id: 's2', user_id: 'u3', type: 'discovery', created_at: '2026-02-17T10:00:00Z' },
+  { id: 'r5', submission_id: 's2', user_id: 'u2', type: 'love', created_at: '2026-02-17T11:00:00Z' },
+  { id: 'r6', submission_id: 's3', user_id: 'u1', type: 'discovery', created_at: '2026-02-15T08:00:00Z' },
+  { id: 'r7', submission_id: 's3', user_id: 'u2', type: 'love', created_at: '2026-02-15T09:00:00Z' },
+  { id: 'r8', submission_id: 's3', user_id: 'u3', type: 'wow', created_at: '2026-02-15T10:00:00Z' },
+  { id: 'r9', submission_id: 's3', user_id: 'u4', type: 'like', created_at: '2026-02-15T11:00:00Z' },
+  { id: 'r10', submission_id: 's4', user_id: 'u2', type: 'discovery', created_at: '2026-02-20T17:00:00Z' },
 ];
 
 let comments: Comment[] = [
@@ -94,18 +95,33 @@ export const store = {
     submissions = submissions.map(s => s.id === id ? { ...s, status } : s);
   },
 
-  getVotes: (submissionId: string) => votes.filter(v => v.submission_id === submissionId),
-  getVoteCount: (submissionId: string) => votes.filter(v => v.submission_id === submissionId).length,
-  hasVoted: (submissionId: string, userId: string) => votes.some(v => v.submission_id === submissionId && v.user_id === userId),
-
-  toggleVote: (submissionId: string, userId: string) => {
-    const existing = votes.find(v => v.submission_id === submissionId && v.user_id === userId);
+  // Reactions
+  getReactions: (submissionId: string) => reactions.filter(r => r.submission_id === submissionId),
+  getReactionCount: (submissionId: string) => reactions.filter(r => r.submission_id === submissionId).length,
+  getReactionCounts: (submissionId: string) => {
+    const counts: Record<string, number> = { like: 0, love: 0, wow: 0, discovery: 0 };
+    reactions.filter(r => r.submission_id === submissionId).forEach(r => { counts[r.type] = (counts[r.type] || 0) + 1; });
+    return counts;
+  },
+  getUserReaction: (submissionId: string, userId: string) => {
+    const r = reactions.find(r => r.submission_id === submissionId && r.user_id === userId);
+    return r ? r.type : null;
+  },
+  setReaction: (submissionId: string, userId: string, type: string) => {
+    const existing = reactions.find(r => r.submission_id === submissionId && r.user_id === userId);
     if (existing) {
-      votes = votes.filter(v => v.id !== existing.id);
-      return false;
+      if (existing.type === type) {
+        // Toggle off
+        reactions = reactions.filter(r => r.id !== existing.id);
+        return null;
+      }
+      // Change type
+      reactions = reactions.map(r => r.id === existing.id ? { ...r, type: type as any } : r);
+      return type;
     }
-    votes = [...votes, { id: genId(), submission_id: submissionId, user_id: userId, created_at: new Date().toISOString() }];
-    return true;
+    // New reaction
+    reactions = [...reactions, { id: genId(), submission_id: submissionId, user_id: userId, type: type as any, created_at: new Date().toISOString() }];
+    return type;
   },
 
   getComments: (submissionId: string) => comments.filter(c => c.submission_id === submissionId).sort((a, b) => a.created_at.localeCompare(b.created_at)),
@@ -118,5 +134,5 @@ export const store = {
   },
 
   getUser: (id: string) => MOCK_USERS.find(u => u.id === id) || null,
-  getAllVotes: () => [...votes],
+  getAllReactions: () => [...reactions],
 };
