@@ -18,11 +18,11 @@ const ScoutingPage: React.FC = () => {
   const [status, setStatus] = useState('all');
   const [period, setPeriod] = useState<'7d' | '30d' | 'all'>('7d');
 
-  if (!isAR) return <Navigate to="/" replace />;
-
   const periodMs = period === '7d' ? SEVEN_DAYS_MS : period === '30d' ? THIRTY_DAYS_MS : Infinity;
   const cutoff = period === 'all' ? '1970-01-01T00:00:00Z' : new Date(Date.now() - periodMs).toISOString();
   const allReactions = store.getAllReactions();
+
+  if (!isAR) return <Navigate to="/" replace />;
 
   const data = useMemo(() => {
     let subs = store.getSubmissions();
