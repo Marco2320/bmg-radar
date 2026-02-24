@@ -54,6 +54,8 @@ const ScoutingPage: React.FC = () => {
 
   const chartColor = 'hsl(199, 57%, 19%)';
 
+  if (!isAR) return <Navigate to="/" replace />;
+
   return (
     <div className="container px-6 py-8 max-w-4xl">
       <div className="mb-6">
