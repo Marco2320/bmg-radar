@@ -22,8 +22,6 @@ const ScoutingPage: React.FC = () => {
   const cutoff = period === 'all' ? '1970-01-01T00:00:00Z' : new Date(Date.now() - periodMs).toISOString();
   const allReactions = store.getAllReactions();
 
-  if (!isAR) return <Navigate to="/" replace />;
-
   const data = useMemo(() => {
     let subs = store.getSubmissions();
     if (territory !== 'all') subs = subs.filter(s => s.territory === territory);

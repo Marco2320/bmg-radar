@@ -83,6 +83,8 @@ const OverviewPage: React.FC = () => {
 
   const chartColor = 'hsl(199, 57%, 19%)';
 
+  if (!isAdmin) return <Navigate to="/" replace />;
+
   return (
     <div className="container px-6 py-8 max-w-5xl">
       <div className="mb-6">
