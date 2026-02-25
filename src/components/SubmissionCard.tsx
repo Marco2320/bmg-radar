@@ -4,8 +4,7 @@ import { Submission } from '@/types';
 import { store } from '@/lib/store';
 import { useAuth } from '@/contexts/AuthContext';
 import StatusBadge from '@/components/StatusBadge';
-import ReactionBar from '@/components/ReactionBar';
-import { MessageSquare, ExternalLink, ChevronDown, ChevronUp, Music } from 'lucide-react';
+import { MessageSquare, ExternalLink, ChevronDown, ChevronUp, ArrowUp } from 'lucide-react';
 
 interface SubmissionCardProps {
   submission: Submission;
@@ -17,6 +16,8 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onVoteChang
   const [showLinks, setShowLinks] = useState(false);
 
   const commentCount = store.getCommentCount(submission.id);
+  const voteCount = store.getReactionCount(submission.id);
+  const hasVoted = store.hasVoted(submission.id, user.id);
   const primaryLink = submission.links[0];
   const submitter = store.getUser(submission.submitted_by);
   const displayGenre = submission.genre === 'Other' && submission.custom_genre
@@ -28,25 +29,28 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onVoteChang
     onVoteChange?.();
   };
 
+  const handleVote = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    store.toggleVote(submission.id, user.id);
+    onVoteChange?.();
+  };
+
   return (
     <div className="bmg-card p-5">
       <div className="flex gap-4">
-        {/* Artist image */}
-        <div className="w-12 h-12 rounded bg-muted flex items-center justify-center shrink-0 overflow-hidden">
-          {submission.image_url ? (
-            <img
-              src={submission.image_url}
-              alt={submission.artist_name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.parentElement?.classList.add('fallback-icon');
-              }}
-            />
-          ) : (
-            <Music className="h-5 w-5 text-muted-foreground" />
-          )}
-        </div>
+        {/* Upvote column */}
+        <button
+          onClick={handleVote}
+          className={`flex flex-col items-center gap-0.5 pt-1 shrink-0 transition-colors bmg-focus-ring rounded ${
+            hasVoted ? 'text-accent-foreground' : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <ArrowUp className={`h-5 w-5 ${hasVoted ? 'stroke-[2.5]' : ''}`} />
+          <span className={`text-sm font-semibold ${hasVoted ? 'text-accent-foreground' : 'text-muted-foreground'}`}>
+            {voteCount}
+          </span>
+        </button>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
@@ -79,11 +83,6 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onVoteChang
           </div>
 
           <p className="text-sm text-foreground/80 mb-3 line-clamp-2">{submission.rationale}</p>
-
-          {/* Reactions */}
-          <div className="flex items-center gap-3 flex-wrap mb-2">
-            <ReactionBar submissionId={submission.id} onReactionChange={onVoteChange} compact />
-          </div>
 
           <div className="flex items-center gap-3 flex-wrap">
             {primaryLink && (
