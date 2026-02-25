@@ -3,8 +3,7 @@ import { store } from '@/lib/store';
 import { Link } from 'react-router-dom';
 import { TERRITORIES, GENRES } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingUp, Flame, MessageCircle, Music } from 'lucide-react';
-import ReactionBar from '@/components/ReactionBar';
+import { TrendingUp, ArrowUp, MessageCircle, Music } from 'lucide-react';
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -96,7 +95,7 @@ const TrendingPage: React.FC = () => {
                   <span className="text-xs text-muted-foreground">{s.territory} · {s.genre}</span>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Flame className="w-3 h-3" />{s.recentReactionCount}</span>
+                  <span className="flex items-center gap-1"><ArrowUp className="w-3 h-3" />{s.recentReactionCount}</span>
                   <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" />{s.recentCommentCount}</span>
                 </div>
               </Link>

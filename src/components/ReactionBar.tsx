@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { store } from '@/lib/store';
 import { useAuth } from '@/contexts/AuthContext';
-import { ThumbsUp } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
 
 interface ReactionBarProps {
   submissionId: string;
@@ -42,7 +42,7 @@ const ReactionBar: React.FC<ReactionBarProps> = ({ submissionId, onReactionChang
           : 'hover:bg-muted text-muted-foreground'
       }`}
     >
-      <ThumbsUp className={`${compact ? 'h-3 w-3' : 'h-3.5 w-3.5'} ${animating ? 'reaction-pop' : ''} ${hasVoted ? 'fill-current' : ''}`} />
+      <ArrowUp className={`${compact ? 'h-3 w-3' : 'h-3.5 w-3.5'} ${animating ? 'reaction-pop' : ''} ${hasVoted ? 'stroke-[2.5]' : ''}`} />
       {count > 0 && (
         <span className={`font-medium ${compact ? 'text-[10px]' : 'text-xs'}`}>
           {count}
