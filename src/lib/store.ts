@@ -50,16 +50,16 @@ let submissions: Submission[] = [
 ];
 
 let reactions: Reaction[] = [
-  { id: 'r1', submission_id: 's1', user_id: 'u3', type: 'love', created_at: '2026-02-18T12:00:00Z' },
-  { id: 'r2', submission_id: 's1', user_id: 'u4', type: 'wow', created_at: '2026-02-18T13:00:00Z' },
-  { id: 'r3', submission_id: 's2', user_id: 'u1', type: 'like', created_at: '2026-02-17T09:00:00Z' },
-  { id: 'r4', submission_id: 's2', user_id: 'u3', type: 'discovery', created_at: '2026-02-17T10:00:00Z' },
-  { id: 'r5', submission_id: 's2', user_id: 'u2', type: 'love', created_at: '2026-02-17T11:00:00Z' },
-  { id: 'r6', submission_id: 's3', user_id: 'u1', type: 'discovery', created_at: '2026-02-15T08:00:00Z' },
-  { id: 'r7', submission_id: 's3', user_id: 'u2', type: 'love', created_at: '2026-02-15T09:00:00Z' },
-  { id: 'r8', submission_id: 's3', user_id: 'u3', type: 'wow', created_at: '2026-02-15T10:00:00Z' },
-  { id: 'r9', submission_id: 's3', user_id: 'u4', type: 'like', created_at: '2026-02-15T11:00:00Z' },
-  { id: 'r10', submission_id: 's4', user_id: 'u2', type: 'discovery', created_at: '2026-02-20T17:00:00Z' },
+  { id: 'r1', submission_id: 's1', user_id: 'u3', created_at: '2026-02-18T12:00:00Z' },
+  { id: 'r2', submission_id: 's1', user_id: 'u4', created_at: '2026-02-18T13:00:00Z' },
+  { id: 'r3', submission_id: 's2', user_id: 'u1', created_at: '2026-02-17T09:00:00Z' },
+  { id: 'r4', submission_id: 's2', user_id: 'u3', created_at: '2026-02-17T10:00:00Z' },
+  { id: 'r5', submission_id: 's2', user_id: 'u2', created_at: '2026-02-17T11:00:00Z' },
+  { id: 'r6', submission_id: 's3', user_id: 'u1', created_at: '2026-02-15T08:00:00Z' },
+  { id: 'r7', submission_id: 's3', user_id: 'u2', created_at: '2026-02-15T09:00:00Z' },
+  { id: 'r8', submission_id: 's3', user_id: 'u3', created_at: '2026-02-15T10:00:00Z' },
+  { id: 'r9', submission_id: 's3', user_id: 'u4', created_at: '2026-02-15T11:00:00Z' },
+  { id: 'r10', submission_id: 's4', user_id: 'u2', created_at: '2026-02-20T17:00:00Z' },
 ];
 
 let comments: Comment[] = [
@@ -95,33 +95,18 @@ export const store = {
     submissions = submissions.map(s => s.id === id ? { ...s, status } : s);
   },
 
-  // Reactions
+  // Votes (simple upvote)
   getReactions: (submissionId: string) => reactions.filter(r => r.submission_id === submissionId),
   getReactionCount: (submissionId: string) => reactions.filter(r => r.submission_id === submissionId).length,
-  getReactionCounts: (submissionId: string) => {
-    const counts: Record<string, number> = { like: 0, love: 0, wow: 0, discovery: 0 };
-    reactions.filter(r => r.submission_id === submissionId).forEach(r => { counts[r.type] = (counts[r.type] || 0) + 1; });
-    return counts;
-  },
-  getUserReaction: (submissionId: string, userId: string) => {
-    const r = reactions.find(r => r.submission_id === submissionId && r.user_id === userId);
-    return r ? r.type : null;
-  },
-  setReaction: (submissionId: string, userId: string, type: string) => {
+  hasVoted: (submissionId: string, userId: string) => reactions.some(r => r.submission_id === submissionId && r.user_id === userId),
+  toggleVote: (submissionId: string, userId: string) => {
     const existing = reactions.find(r => r.submission_id === submissionId && r.user_id === userId);
     if (existing) {
-      if (existing.type === type) {
-        // Toggle off
-        reactions = reactions.filter(r => r.id !== existing.id);
-        return null;
-      }
-      // Change type
-      reactions = reactions.map(r => r.id === existing.id ? { ...r, type: type as any } : r);
-      return type;
+      reactions = reactions.filter(r => r.id !== existing.id);
+      return false;
     }
-    // New reaction
-    reactions = [...reactions, { id: genId(), submission_id: submissionId, user_id: userId, type: type as any, created_at: new Date().toISOString() }];
-    return type;
+    reactions = [...reactions, { id: genId(), submission_id: submissionId, user_id: userId, created_at: new Date().toISOString() }];
+    return true;
   },
 
   getComments: (submissionId: string) => comments.filter(c => c.submission_id === submissionId).sort((a, b) => a.created_at.localeCompare(b.created_at)),

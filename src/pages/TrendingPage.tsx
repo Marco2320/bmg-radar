@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { store } from '@/lib/store';
 import { Link } from 'react-router-dom';
-import { TERRITORIES, GENRES, REACTION_EMOJIS, ReactionType } from '@/types';
+import { TERRITORIES, GENRES } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingUp, Flame, MessageCircle, Music } from 'lucide-react';
 import ReactionBar from '@/components/ReactionBar';
@@ -40,14 +40,7 @@ const TrendingPage: React.FC = () => {
     const topTrending = [...scored].sort((a, b) => b.engagementScore - a.engagementScore).slice(0, 10);
     const mostReacted = [...scored].sort((a, b) => b.totalReactions - a.totalReactions).slice(0, 5);
 
-    // Most used reaction type
-    const reactionTypeCounts: Record<string, number> = { like: 0, love: 0, wow: 0, discovery: 0 };
-    allReactions.filter(r => r.created_at >= cutoff).forEach(r => {
-      reactionTypeCounts[r.type] = (reactionTypeCounts[r.type] || 0) + 1;
-    });
-    const topReactionType = (Object.entries(reactionTypeCounts).sort((a, b) => b[1] - a[1])[0] || ['like', 0]) as [ReactionType, number];
-
-    return { topTrending, mostReacted, topReactionType };
+    return { topTrending, mostReacted };
   }, [territory, genre, period, allReactions, cutoff, tick]);
 
   return (
@@ -80,15 +73,6 @@ const TrendingPage: React.FC = () => {
             {GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
           </SelectContent>
         </Select>
-      </div>
-
-      {/* Top reaction vibe */}
-      <div className="bmg-card p-5 mb-6 flex items-center gap-4">
-        <span className="text-3xl">{REACTION_EMOJIS[data.topReactionType[0]]}</span>
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Most popular reaction</p>
-          <p className="text-sm font-semibold capitalize">{data.topReactionType[0]} · {data.topReactionType[1]} times</p>
-        </div>
       </div>
 
       {/* Top Trending */}
