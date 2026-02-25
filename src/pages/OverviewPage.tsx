@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { store, MOCK_USERS } from '@/lib/store';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
-import { TERRITORIES, GENRES, STATUSES, REACTION_EMOJIS, REACTION_TYPES, SubmissionStatus, ReactionType } from '@/types';
+import { TERRITORIES, GENRES, STATUSES, SubmissionStatus } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, MessageCircle, Flame, Users, FileText, Activity } from 'lucide-react';
@@ -57,11 +57,6 @@ const OverviewPage: React.FC = () => {
     subs.forEach(s => { byGenre[s.genre] = (byGenre[s.genre] || 0) + 1; });
     const genreData = Object.entries(byGenre).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
 
-    // Reaction type breakdown
-    const reactionBreakdown: Record<string, number> = { like: 0, love: 0, wow: 0, discovery: 0 };
-    filteredReactions.forEach(r => { reactionBreakdown[r.type] = (reactionBreakdown[r.type] || 0) + 1; });
-    const reactionData = REACTION_TYPES.map(t => ({ name: `${REACTION_EMOJIS[t]} ${t}`, count: reactionBreakdown[t] }));
-
     // Top submitters
     const submitterCounts: Record<string, number> = {};
     subs.forEach(s => { submitterCounts[s.submitted_by] = (submitterCounts[s.submitted_by] || 0) + 1; });
@@ -78,7 +73,7 @@ const OverviewPage: React.FC = () => {
       return { ...s, reactions: rCount, comments: cCount, score: rCount * 2 + cCount * 3 };
     }).sort((a, b) => b.score - a.score).slice(0, 5);
 
-    return { totalSubmissions, totalReactions, totalComments, activeUsers, pipelineData, territoryData, genreData, reactionData, topSubmitters, topEngaged };
+    return { totalSubmissions, totalReactions, totalComments, activeUsers, pipelineData, territoryData, genreData, topSubmitters, topEngaged };
   }, [territory, genre, period, allReactions, cutoff]);
 
   const chartColor = 'hsl(199, 57%, 19%)';
@@ -86,7 +81,7 @@ const OverviewPage: React.FC = () => {
   if (!isAdmin) return <Navigate to="/" replace />;
 
   return (
-    <div className="container px-6 py-8 max-w-5xl">
+    <div className="container px-6 py-8 max-w-3xl">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold mb-1">Overview</h1>
         <p className="text-sm text-muted-foreground">Master analytics dashboard — full platform visibility.</p>
@@ -158,20 +153,6 @@ const OverviewPage: React.FC = () => {
             <div key={p.name} className="bmg-card p-4 text-center">
               <StatusBadge status={p.name as SubmissionStatus} className="mb-2" />
               <p className="text-2xl font-semibold">{p.count}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Reaction Breakdown */}
-      <div className="mb-8">
-        <h2 className="text-sm font-semibold mb-3">Reaction Breakdown</h2>
-        <div className="grid grid-cols-4 gap-3">
-          {data.reactionData.map(r => (
-            <div key={r.name} className="bmg-card p-4 text-center">
-              <p className="text-lg mb-1">{r.name.split(' ')[0]}</p>
-              <p className="text-xl font-semibold">{r.count}</p>
-              <p className="text-xs text-muted-foreground capitalize">{r.name.split(' ')[1]}</p>
             </div>
           ))}
         </div>

@@ -57,7 +57,7 @@ const ScoutingPage: React.FC = () => {
   if (!isAR) return <Navigate to="/" replace />;
 
   return (
-    <div className="container px-6 py-8 max-w-4xl">
+    <div className="container px-6 py-8 max-w-3xl">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold mb-1">Scouting</h1>
         <p className="text-sm text-muted-foreground">A&R pipeline and engagement analysis.</p>

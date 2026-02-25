@@ -19,8 +19,6 @@ export type Platform =
 
 export type SubmissionStatus = 'New' | 'Opened' | 'Reviewed' | 'Passed' | 'Shortlisted';
 
-export type ReactionType = 'like' | 'love' | 'wow' | 'discovery';
-
 export interface SubmissionLink {
   id: string;
   submission_id: string;
@@ -47,7 +45,6 @@ export interface Reaction {
   id: string;
   submission_id: string;
   user_id: string;
-  type: ReactionType;
   created_at: string;
 }
 
@@ -58,22 +55,6 @@ export interface Comment {
   comment_text: string;
   created_at: string;
 }
-
-export const REACTION_EMOJIS: Record<ReactionType, string> = {
-  like: '👍',
-  love: '❤️',
-  wow: '🤯',
-  discovery: '🔥',
-};
-
-export const REACTION_LABELS: Record<ReactionType, string> = {
-  like: 'Like',
-  love: 'Love',
-  wow: 'Wow',
-  discovery: 'New Discovery',
-};
-
-export const REACTION_TYPES: ReactionType[] = ['like', 'love', 'wow', 'discovery'];
 
 export const PLATFORMS: Platform[] = [
   'Spotify', 'YouTube', 'TikTok', 'Instagram', 'Apple Music', 'SoundCloud', 'Bandcamp', 'Other'
