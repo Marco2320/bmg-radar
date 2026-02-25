@@ -5,8 +5,7 @@ import { TERRITORIES, GENRES, STATUSES } from '@/types';
 import SubmissionCard from '@/components/SubmissionCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link, useLocation } from 'react-router-dom';
-import { TrendingUp, Music, X, CheckCircle2 } from 'lucide-react';
-import ReactionBar from '@/components/ReactionBar';
+import { TrendingUp, Music, X, ArrowUp } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 10;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -165,8 +164,10 @@ const FeedPage: React.FC = () => {
                     )}
                     <span className="text-sm font-medium truncate">{s.artist_name}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-2">{s.territory} · {s.genre}</p>
-                  <ReactionBar submissionId={s.id} onReactionChange={refresh} compact />
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <ArrowUp className="w-3 h-3" />
+                    <span className="font-medium">{store.getReactionCount(s.id)}</span>
+                  </div>
                 </Link>
               ))}
             </div>
