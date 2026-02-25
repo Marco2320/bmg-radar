@@ -5,7 +5,7 @@ import { Navigate, Link } from 'react-router-dom';
 import { TERRITORIES, GENRES, STATUSES, SubmissionStatus } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, MessageCircle, Flame, Music } from 'lucide-react';
+import { TrendingUp, MessageCircle, ArrowUp, Music } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -112,7 +112,7 @@ const ScoutingPage: React.FC = () => {
       {/* Top Engaged */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-3">
-          <Flame className="w-4 h-4 text-accent-foreground" />
+          <ArrowUp className="w-4 h-4 text-accent-foreground" />
           <h2 className="text-sm font-semibold">Top Engaged</h2>
         </div>
         <div className="bmg-card divide-y divide-border">
@@ -127,7 +127,7 @@ const ScoutingPage: React.FC = () => {
                   <StatusBadge status={s.status} />
                 </div>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Flame className="w-3 h-3" />{s.reactions}</span>
+                  <span className="flex items-center gap-1"><ArrowUp className="w-3 h-3" />{s.reactions}</span>
                   <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" />{s.comments}</span>
                 </div>
               </Link>

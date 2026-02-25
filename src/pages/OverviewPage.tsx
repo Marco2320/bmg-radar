@@ -5,7 +5,7 @@ import { Navigate, Link } from 'react-router-dom';
 import { TERRITORIES, GENRES, STATUSES, SubmissionStatus } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, MessageCircle, Flame, Users, FileText, Activity } from 'lucide-react';
+import { TrendingUp, MessageCircle, ArrowUp, Users, FileText, Activity } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -124,7 +124,7 @@ const OverviewPage: React.FC = () => {
         </div>
         <div className="bmg-card p-5">
           <div className="flex items-center gap-2 mb-1">
-            <Flame className="w-3.5 h-3.5 text-muted-foreground" />
+            <ArrowUp className="w-3.5 h-3.5 text-muted-foreground" />
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Reactions</p>
           </div>
           <p className="text-3xl font-semibold">{data.totalReactions}</p>
