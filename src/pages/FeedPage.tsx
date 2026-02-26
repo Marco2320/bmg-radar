@@ -149,24 +149,30 @@ const FeedPage: React.FC = () => {
             </div>
             <div className="flex gap-3 overflow-x-auto pb-1">
               {trending.filter(t => t.engagementScore > 0).map(s => (
-                <Link
+              <Link
                   to={`/submission/${s.id}`}
                   key={s.id}
-                  className="bmg-card p-4 min-w-[200px] flex-shrink-0 hover:bg-muted/50 transition-colors"
+                  className="bmg-card p-4 min-w-[210px] flex-shrink-0 hover:border-primary/30 hover:shadow-md transition-all group"
                 >
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-3 mb-3">
                     {s.image_url ? (
-                      <img src={s.image_url} alt={s.artist_name} className="w-8 h-8 rounded-full object-cover" />
+                      <img src={s.image_url} alt={s.artist_name} className="w-10 h-10 rounded-full object-cover ring-2 ring-border" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center ring-2 ring-border">
                         <Music className="w-4 h-4 text-muted-foreground" />
                       </div>
                     )}
-                    <span className="text-sm font-medium truncate">{s.artist_name}</span>
+                    <div className="min-w-0">
+                      <span className="text-sm font-semibold truncate block group-hover:text-primary transition-colors">{s.artist_name}</span>
+                      <span className="text-[11px] text-muted-foreground">{s.territory} · {s.genre}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <ArrowUp className="w-3 h-3" />
-                    <span className="font-medium">{store.getReactionCount(s.id)}</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <ArrowUp className="w-3.5 h-3.5" />
+                      <span className="font-semibold">{store.getReactionCount(s.id)}</span>
+                    </div>
+                    <span className="text-[10px] uppercase tracking-wider font-medium text-accent-foreground/70">Trending</span>
                   </div>
                 </Link>
               ))}
